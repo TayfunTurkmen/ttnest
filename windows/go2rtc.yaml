@@ -1,0 +1,18 @@
+# go2rtc ayarı — her Windows bilgisayarda go2rtc.exe ile aynı klasöre koy.
+# Kamera yalnızca biri izlerken açılır (izleme bitince kamera ışığı söner).
+
+api:
+  listen: ":1984"
+  username: "kamera"
+  password: "BURAYA-GUCLU-BIR-SIFRE"   # DEVICES içindeki camUrl ile aynı olmalı
+
+# Kullanılmayan servisleri kapat
+rtsp:
+  listen: ""
+webrtc:
+  listen: ""
+
+streams:
+  # video=0 -> ilk kamera. Kamera adlarını görmek için: ffmpeg -list_devices true -f dshow -i dummy
+  # Örn. isimle:  ffmpeg:device?video=Integrated%20Camera&video_size=1280x720#video=mjpeg
+  webcam: ffmpeg:device?video=0&video_size=1280x720&framerate=15#video=mjpeg

@@ -1,0 +1,30 @@
+# Coolify: "Docker Compose" build pack ile bu dosyayı seç.
+# "app" servisine domain ver:  https://ev.ornek.com:3000   (":3000" = konteyner içi port)
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    expose:
+      - "3000"
+    environment:
+      - PORT=3000
+      - APP_PASSWORD=${APP_PASSWORD:?APP_PASSWORD gerekli}
+      - SESSION_SECRET=${SESSION_SECRET:-}
+      - DEVICES=${DEVICES:?DEVICES gerekli}
+      - POLL_SECONDS=${POLL_SECONDS:-10}
+      - WOL_RELAY_URL=http://host.docker.internal:9099
+      - WOL_RELAY_TOKEN=${WOL_RELAY_TOKEN:?WOL_RELAY_TOKEN gerekli}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Wake-on-LAN broadcast paketi Docker köprü ağından ev ağına çıkamaz.
+  # Bu küçük servis sunucunun kendi ağında (host) çalışır ve yalnızca
+  # token'lı /wake isteğiyle magic packet yollar.
+  wol-relay:
+    build: .
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - MODE=relay
+      - PORT=9099
+      - WOL_RELAY_TOKEN=${WOL_RELAY_TOKEN:?WOL_RELAY_TOKEN gerekli}

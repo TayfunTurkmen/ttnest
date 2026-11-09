@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>tthome</title>
+<style>
+  :root {
+    --bg: #f3f4f6; --card: #ffffff; --text: #14171c; --muted: #646b78; --border: #e2e5ea;
+    --accent: #2563eb; --accent-text: #fff; --ok: #16a34a; --off: #9aa1ad; --warn: #d97706; --danger: #dc2626;
+    --btn: #eef0f3; --btn-hover: #e3e6ea;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1014; --card: #171a20; --text: #e8eaee; --muted: #9399a5; --border: #272b33;
+      --accent: #4f8cff; --accent-text: #fff; --ok: #22c55e; --off: #6b7280; --warn: #f59e0b; --danger: #f87171;
+      --btn: #222630; --btn-hover: #2b303b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 20px 16px 48px; }
+  .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  h1 { font-size: 20px; margin: 0; letter-spacing: -.01em; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+  .head { display: flex; align-items: center; gap: 12px; }
+  .icon { width: 40px; height: 40px; border-radius: 10px; background: var(--btn); display: grid; place-items: center; flex: none; }
+  .icon svg { width: 22px; height: 22px; stroke: var(--muted); fill: none; stroke-width: 1.8; }
+  .name { font-weight: 600; font-size: 16px; }
+  .host { color: var(--muted); font-size: 12px; font-family: ui-monospace, Consolas, monospace; }
+  .badge { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
+           padding: 4px 10px; border-radius: 999px; background: var(--btn); white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+  .on .dot { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+  .waking .dot { background: var(--warn); animation: pulse 1.2s infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .meta { color: var(--muted); font-size: 13px; margin: 12px 0 14px; min-height: 19px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  button, .btn { appearance: none; border: 1px solid var(--border); background: var(--btn); color: var(--text);
+                 font: inherit; font-size: 14px; padding: 8px 12px; border-radius: 9px; cursor: pointer;
+                 text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  button:hover, .btn:hover { background: var(--btn-hover); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  .primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+  .primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+  .link { background: none; border: none; color: var(--muted); padding: 6px 8px; }
+  .cam { margin-top: 14px; border-radius: 10px; overflow: hidden; background: #000; position: relative; aspect-ratio: 16/9; }
+  .cam img { width: 100%; height: 100%; object-fit: contain; display: block; cursor: zoom-in; }
+  .cam .msg { position: absolute; inset: 0; display: grid; place-items: center; color: #bbb; font-size: 13px; padding: 12px; text-align: center; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--text); color: var(--bg);
+           padding: 10px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none;
+           max-width: calc(100% - 32px); }
+  .toast.show { opacity: 1; }
+  .empty { color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>tthome</h1>
+      <div class="sub" id="updated">Yükleniyor…</div>
+    </div>
+    <form method="post" action="/logout"><button class="link" type="submit">Çıkış</button></form>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<template id="tpl">
+  <article class="card">
+    <div class="head">
+      <div class="icon"></div>
+      <div>
+        <div class="name"></div>
+        <div class="host"></div>
+      </div>
+      <span class="badge"><span class="dot"></span><span class="label">…</span></span>
+    </div>
+    <div class="meta"></div>
+    <div class="actions">
+      <button class="primary wake" type="button">Uyandır</button>
+      <a class="btn rd" href="#">RustDesk ile bağlan</a>
+      <button class="copy" type="button" title="RustDesk ID'yi kopyala">ID kopyala</button>
+      <button class="camBtn" type="button">Kamerayı aç</button>
+    </div>
+    <div class="cam" hidden><img alt="Webcam görüntüsü"><div class="msg" hidden></div></div>
+  </article>
+</template>
+
+<script>
+const ICONS = {
+  desktop: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  laptop: '<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19h20"/></svg>',
+};
+const grid = document.getElementById('grid');
+const cards = new Map();
+let toastTimer;
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function ago(ts) {
+  if (!ts) return 'hiç görülmedi';
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return 'az önce';
+  if (s < 3600) return Math.round(s / 60) + ' dk önce';
+  if (s < 86400) return Math.round(s / 3600) + ' sa önce';
+  return Math.round(s / 86400) + ' gün önce';
+}
+
+function setCam(el, d, open) {
+  const box = el.querySelector('.cam'), img = box.querySelector('img'), msg = box.querySelector('.msg');
+  const btn = el.querySelector('.camBtn');
+  el._camOpen = open;
+  box.hidden = !open;
+  btn.textContent = open ? 'Kamerayı kapat' : 'Kamerayı aç';
+  msg.hidden = true;
+  if (open) {
+    img.hidden = false;
+    img.src = '/cam/' + encodeURIComponent(d.id) + '?t=' + Date.now();
+  } else {
+    img.removeAttribute('src'); // akışı keser, kamera kapanır
+  }
+}
+
+function build(d) {
+  const el = document.getElementById('tpl').content.firstElementChild.cloneNode(true);
+  el.querySelector('.icon').innerHTML = ICONS[d.icon] || ICONS.desktop;
+  el.querySelector('.name').textContent = d.name;
+  el.querySelector('.host').textContent = d.host;
+
+  const wakeBtn = el.querySelector('.wake');
+  if (!d.hasWol) wakeBtn.hidden = true;
+  wakeBtn.onclick = async () => {
+    wakeBtn.disabled = true;
+    try {
+      const r = await fetch('/api/devices/' + encodeURIComponent(d.id) + '/wake', {
+        method: 'POST', headers: { 'X-Requested-With': 'ev-kontrol' },
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error || r.status);
+      toast(d.name + ': uyandırma paketi gönderildi');
+      load();
+    } catch (e) { toast('Uyandırılamadı: ' + e.message); wakeBtn.disabled = false; }
+  };
+
+  const rd = el.querySelector('.rd'), copy = el.querySelector('.copy');
+  if (d.rustdeskId) {
+    rd.href = 'rustdesk://' + encodeURIComponent(d.rustdeskId);
+    copy.onclick = async () => {
+      try { await navigator.clipboard.writeText(d.rustdeskId); toast('RustDesk ID kopyalandı: ' + d.rustdeskId); }
+      catch { prompt('RustDesk ID', d.rustdeskId); }
+    };
+  } else { rd.hidden = true; copy.hidden = true; }
+
+  const camBtn = el.querySelector('.camBtn');
+  if (!d.hasCam) camBtn.hidden = true;
+  camBtn.onclick = () => setCam(el, el._d, !el._camOpen);
+  const img = el.querySelector('.cam img'), msg = el.querySelector('.cam .msg');
+  img.onerror = () => {
+    if (!el._camOpen) return;
+    img.hidden = true; msg.hidden = false;
+    msg.textContent = 'Kamera yayını alınamadı. go2rtc çalışıyor mu?';
+  };
+  img.onclick = () => (document.fullscreenElement ? document.exitFullscreen() : img.requestFullscreen?.());
+
+  grid.appendChild(el);
+  return el;
+}
+
+function update(el, d) {
+  el._d = d;
+  const waking = !d.online && d.wakeAt && Date.now() - d.wakeAt < 3 * 60e3;
+  const badge = el.querySelector('.badge');
+  badge.className = 'badge' + (d.online ? ' on' : waking ? ' waking' : '');
+  badge.querySelector('.label').textContent = !d.checked ? 'Kontrol ediliyor' : d.online ? 'Çevrimiçi' : waking ? 'Uyanıyor…' : 'Kapalı';
+
+  let meta;
+  if (d.online) meta = (d.latency != null ? d.latency + ' ms' : '') + (d.hasCam ? (d.camOnline ? ' · kamera hazır' : ' · kamera servisi yanıt vermiyor') : '');
+  else if (waking) meta = 'Uyandırma paketi gönderildi, açılması bekleniyor';
+  else meta = 'Son görülme: ' + ago(d.lastSeen);
+  el.querySelector('.meta').textContent = meta;
+
+  const wakeBtn = el.querySelector('.wake');
+  wakeBtn.disabled = d.online || waking;
+  el.querySelector('.rd').classList.toggle('primary', d.online);
+  el.querySelector('.camBtn').disabled = !d.online && !el._camOpen;
+  if (el._camOpen && !d.online) setCam(el, d, false);
+}
+
+async function load() {
+  try {
+    const r = await fetch('/api/devices', { cache: 'no-store' });
+    if (r.status === 401) { location.href = '/login'; return; }
+    const { devices } = await r.json();
+    if (!devices.length) grid.innerHTML = '<p class="empty">Tanımlı cihaz yok. DEVICES ortam değişkenini ayarlayın.</p>';
+    for (const d of devices) {
+      if (!cards.has(d.id)) cards.set(d.id, build(d));
+      update(cards.get(d.id), d);
+    }
+    document.getElementById('updated').textContent = 'Güncellendi: ' + new Date().toLocaleTimeString('tr-TR');
+  } catch (e) {
+    document.getElementById('updated').textContent = 'Sunucuya ulaşılamıyor';
+  }
+}
+load();
+setInterval(load, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+</script>
+</body>
+</html>
