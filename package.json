@@ -1,5 +1,5 @@
 {
-  "name": "tthome",
+  "name": "ttnest",
   "version": "1.0.0",
   "private": true,
   "description": "Ev bilgisayarları için durum paneli, Wake-on-LAN, RustDesk kısayolu ve webcam izleme",

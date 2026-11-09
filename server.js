@@ -1,5 +1,5 @@
 'use strict';
-// tthome — cihaz durumu, Wake-on-LAN, RustDesk bağlantısı ve webcam proxy.
+// ttnest — cihaz durumu, Wake-on-LAN, RustDesk bağlantısı ve webcam proxy.
 // Harici bağımlılık yok; yalnızca Node.js çekirdek modülleri.
 
 const http = require('http');
@@ -423,6 +423,6 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, BIND, () => {
-  log(`tthome ${BIND}:${PORT} üzerinde çalışıyor — ${devices.length} cihaz`);
+  log(`ttnest ${BIND}:${PORT} üzerinde çalışıyor — ${devices.length} cihaz`);
   log(RELAY_URL ? `WoL relay: ${RELAY_URL}` : 'WoL doğrudan gönderilecek (relay yok)');
 });
